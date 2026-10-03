@@ -5,11 +5,16 @@ import { drawCritter, sparkle } from '../art.js';
 import { text, pill, button, solidRoundRect } from '../ui.js';
 import { TAU, clamp, dist, lerp, easeOutBack, easeOutBounce, mulberry32, hexInt } from '../util.js';
 
-const { WIDTH: W, HEIGHT: H } = CONFIG;
-// Encounter layout (fixed 1280x720 space)
-const R = 95, CX = W / 2, CY = 300, SCALE = R / 40;
-const GROUND_Y = CY + 44 * SCALE;
-const REST_X = W / 2, REST_Y = H - 100;
+// Encounter layout, recomputed in create() for the current game size (landscape or portrait).
+const R = 95, SCALE = R / 40;
+let W, H, CX, CY, HEAD_Y, GROUND_Y, REST_X, REST_Y;
+function layout() {
+  ({ WIDTH: W, HEIGHT: H } = CONFIG);
+  CX = W / 2; CY = Math.round(H * 0.42);
+  HEAD_Y = Math.max(62, CY - 238); // header baseline: above the critter, never off-screen
+  GROUND_Y = CY + 44 * SCALE;
+  REST_X = W / 2; REST_Y = Math.min(H - 100, CY + 560);
+}
 const GEM_R = 30;            // on-screen gem radius at full size
 const TEX_W = 420, TEX_H = 380, TEX_CX = 210, TEX_CY = 215; // live critter canvas
 const WOBBLE_T = 0.95;
@@ -25,6 +30,7 @@ export default class EncounterScene extends Phaser.Scene {
   }
 
   create() {
+    layout();
     // Phaser reuses this scene instance for every encounter, so reset all per-encounter state here.
     this.finished = false; this.resultShown = false;
     this.bonus = null; this.fly = null; this.xpLines = null; this.xpTotal = 0;
@@ -36,7 +42,7 @@ export default class EncounterScene extends Phaser.Scene {
     journalEntry(this.sp.id).seen++;
 
     this.drawBackground();
-    this.clouds = [0, 1, 2].map(i => this.add.image(Math.random() * W, 60 + i * 55, 'cloud')
+    this.clouds = [0, 1, 2].map(i => this.add.image(Math.random() * W, GROUND_Y - 344 + i * 55, 'cloud')
       .setAlpha(Math.max(0, 0.9 - darkness() * 1.5)).setData('speed', 10 + i * 6));
 
     this.platform = this.add.graphics();
@@ -61,12 +67,12 @@ export default class EncounterScene extends Phaser.Scene {
 
     // Header
     const shadow = { offsetX: 0, offsetY: 2, color: 'rgba(0,0,0,.35)', blur: 8, fill: true };
-    text(this, CX - 6, 58, 'PWR', 18, '#ffffff', '900', { shadow }).setOrigin(1, 1);
-    text(this, CX, 62, String(this.c.power), 36, '#ffffff', '900', { shadow }).setOrigin(0, 1);
-    text(this, CX, 92, this.sp.name, 25, '#ffffff', '900', { shadow }).setOrigin(0.5);
+    text(this, CX - 6, HEAD_Y - 4, 'PWR', 18, '#ffffff', '900', { shadow }).setOrigin(1, 1);
+    text(this, CX, HEAD_Y, String(this.c.power), 36, '#ffffff', '900', { shadow }).setOrigin(0, 1);
+    text(this, CX, HEAD_Y + 30, this.sp.name, 25, '#ffffff', '900', { shadow }).setOrigin(0.5);
     if (this.sp.rarity !== 'common') {
       const col = { uncommon: '#e2e8f0', rare: '#a5f3fc', legendary: '#fde047' }[this.sp.rarity];
-      text(this, CX, 122, `★ ${RARITY[this.sp.rarity].label.toUpperCase()} ★`, 14, col, '900', { stroke: '#1e293b', strokeThickness: 4 }).setOrigin(0.5);
+      text(this, CX, HEAD_Y + 60, `★ ${RARITY[this.sp.rarity].label.toUpperCase()} ★`, 14, col, '900', { stroke: '#1e293b', strokeThickness: 4 }).setOrigin(0.5);
     }
     this.msg = text(this, CX, 0, '', 34, '#ffffff', '900', { stroke: '#1e1e3c', strokeThickness: 7 }).setOrigin(0.5).setAlpha(0).setDepth(50);
     this.hint = text(this, CX, REST_Y - 62, 'Drag the gem and flick it up at the critter!', 16, '#ffffff', '800', { shadow }).setOrigin(0.5);
@@ -87,9 +93,13 @@ export default class EncounterScene extends Phaser.Scene {
 
   drawBackground() {
     const key = 'encBg';
+    if (this.textures.exists(key)) {
+      const src = this.textures.get(key).getSourceImage();
+      if (src.width !== W || src.height !== H) this.textures.remove(key); // screen size changed
+    }
     const tex = this.textures.exists(key) ? this.textures.get(key) : this.textures.createCanvas(key, W, H);
     const ctx = tex.getContext(), rng = mulberry32((Math.random() * 1e9) | 0);
-    const hz = H * 0.5, dk = darkness(), b = this.biome;
+    const hz = GROUND_Y - 44, dk = darkness(), b = this.biome;
     ctx.clearRect(0, 0, W, H);
     let g = ctx.createLinearGradient(0, 0, 0, hz);
     g.addColorStop(0, '#6ec3f5'); g.addColorStop(1, '#e3f6ff');

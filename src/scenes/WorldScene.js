@@ -1,4 +1,4 @@
-import { CONFIG, GEMS, RARITY } from '../config.js';
+import { CONFIG, GEMS, RARITY, TOUCH } from '../config.js';
 import { SPECIES } from '../species.js';
 import { T, getWorld } from '../world.js';
 import { Player } from '../player.js';
@@ -56,7 +56,7 @@ export default class WorldScene extends Phaser.Scene {
 
     this.scene.launch('UI');
     this.time.delayedCall(400, () => this.game.events.emit('toast',
-      save.caught.length ? `Welcome back, Trainer! (Level ${save.level})` : 'Click a wild critter to try catching it!', 'good'));
+      save.caught.length ? `Welcome back, Trainer! (Level ${save.level})` : `${TOUCH ? 'Tap' : 'Click'} a wild critter to try catching it!`, 'good'));
   }
 
   get ui() { return this.scene.get('UI'); }

@@ -1,6 +1,6 @@
 // Game-wide tuning and data tables.
 export const CONFIG = {
-  WIDTH: 1280,
+  WIDTH: 1280,           // game size adapts to the screen's shape at startup / on resize (see main.js)
   HEIGHT: 720,
   TILE: 40,
   N: 75,                 // world is N x N tiles (3000 x 3000 px)
@@ -12,6 +12,9 @@ export const CONFIG = {
   STOP_COOLDOWN: 60,
   SAVE_KEY: 'cricketCatcher.v1',
 };
+
+// Phones / tablets: tweak wording ("tap" not "click") and hide keyboard hints.
+export const TOUCH = window.matchMedia('(pointer: coarse)').matches;
 
 export const FONT = 'Nunito, "Segoe UI", Arial, sans-serif';
 

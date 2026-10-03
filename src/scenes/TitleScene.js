@@ -1,4 +1,4 @@
-import { CONFIG } from '../config.js';
+import { CONFIG, TOUCH } from '../config.js';
 import { SPECIES } from '../species.js';
 import { save } from '../state.js';
 import { Sound, startMusic } from '../sound.js';
@@ -34,8 +34,8 @@ export default class TitleScene extends Phaser.Scene {
     text(this, px, py - 72, "A tiny open world full of wild critters. Go catch 'em!", 17, '#475569', '700').setOrigin(0.5);
 
     const tips = [
-      'Walk with WASD / arrow keys, or click & hold on the map',
-      'Click a critter, then drag and flick a gem up at it',
+      TOUCH ? 'Tap or hold on the map to walk around' : 'Walk with WASD / arrow keys, or click & hold on the map',
+      `${TOUCH ? 'Tap' : 'Click'} a critter, then drag and flick a gem up at it`,
       'Land inside the shrinking ring for Nice / Great / Perfect bonuses',
       'Spin blue Supply Stops to collect more gems',
       'Some critters only appear near water, in the park, or at night…',

@@ -1,11 +1,11 @@
-import { CONFIG, GEMS, RARITY, TYPE_COLORS } from '../config.js';
+import { CONFIG, GEMS, RARITY, TYPE_COLORS, TOUCH } from '../config.js';
 import { SPECIES, SPECIES_BY_ID } from '../species.js';
 import { save, persist, xpNeeded, isNight } from '../state.js';
 import { Sound, setMuted } from '../sound.js';
 import { text, pill, button, Toaster, solidRoundRect } from '../ui.js';
 import { hexInt } from '../util.js';
 
-const { WIDTH: W, HEIGHT: H } = CONFIG;
+let W, H; // current game size, read in create()
 const MM = 150; // minimap size
 
 // Explore HUD (trainer card, gem bag, minimap, toasts) and the Field Journal.
@@ -13,6 +13,7 @@ export default class UIScene extends Phaser.Scene {
   constructor() { super('UI'); }
 
   create() {
+    ({ WIDTH: W, HEIGHT: H } = CONFIG);
     this.worldScene = this.scene.get('World');
     this.zones = [];
     this.journalOpen = false;
@@ -25,9 +26,12 @@ export default class UIScene extends Phaser.Scene {
     this.statsBg = this.add.graphics();
     this.statsText = text(this, 14, 0, '', 13, '#334155', '800').setOrigin(0, 0.5);
     this.stats.add([this.statsBg, this.statsText]);
-    const help = text(this, W / 2, H - 24, 'WASD / arrows or click to walk · click critters & stops', 12, '#ffffff', '700').setOrigin(0.5);
-    this.add.graphics().fillStyle(0x0f172a, 0.55).fillRoundedRect(W / 2 - help.width / 2 - 14, H - 38, help.width + 28, 28, 14);
-    help.setDepth(1);
+    // Keyboard hint along the bottom, only where it fits between the gem bag and the minimap.
+    if (!TOUCH && W >= 1100) {
+      const help = text(this, W / 2, H - 24, 'WASD / arrows or click to walk · click critters & stops', 12, '#ffffff', '700').setOrigin(0.5);
+      this.add.graphics().fillStyle(0x0f172a, 0.55).fillRoundedRect(W / 2 - help.width / 2 - 14, H - 38, help.width + 28, 28, 14);
+      help.setDepth(1);
+    }
 
     this.toaster = new Toaster(this, W / 2, 96);
     this.game.events.on('toast', this.toaster.show, this.toaster);
@@ -155,7 +159,11 @@ export default class UIScene extends Phaser.Scene {
     dim.on('pointerdown', () => this.closeJournal());
     c.add(dim);
 
-    const pw = 820, ph = 600, px = (W - pw) / 2, py = (H - ph) / 2;
+    // 4 species columns on wide screens, 3 on narrow (portrait) ones; the panel grows to fit.
+    const cw = 178, ch = 176, gap = 12, cols = W >= 880 ? 4 : 3, rows = Math.ceil(SPECIES.length / cols);
+    const mineCols = cols === 4 ? 3 : 2, mineRows = Math.ceil(6 / mineCols);
+    const pw = cols === 4 ? 820 : 600, ph = 94 + rows * (ch + gap) + 6 + 32 + mineRows * 50 + 10;
+    const px = (W - pw) / 2, py = Math.max(10, (H - ph) / 2);
     const panel = this.add.graphics();
     panel.fillStyle(0x000000, 0.25).fillRoundedRect(px, py + 10, pw, ph, 26);
     solidRoundRect(panel, px, py, pw, ph, 26, 0xffffff);
@@ -167,11 +175,11 @@ export default class UIScene extends Phaser.Scene {
     c.add(text(this, px + 30, py + 62, `${caughtSpecies} / ${SPECIES.length} species caught`, 14, '#64748b', '700'));
     c.add(button(this, px + pw - 44, py + 42, 44, 44, '✕', () => this.closeJournal(), { size: 18, fill: 0xf1f5f9 }));
 
-    const cw = 178, ch = 176, gap = 12, gx = px + (pw - (cw * 4 + gap * 3)) / 2, gy = py + 94;
+    const gx = px + (pw - (cw * cols + gap * (cols - 1))) / 2, gy = py + 94;
     SPECIES.forEach((sp, i) => {
       const d = save.journal[sp.id] || { seen: 0, caught: 0 };
       const mode = d.caught ? 'caught' : d.seen ? 'seen' : 'unseen';
-      const x = gx + (i % 4) * (cw + gap), y = gy + Math.floor(i / 4) * (ch + gap);
+      const x = gx + (i % cols) * (cw + gap), y = gy + Math.floor(i / cols) * (ch + gap);
       const card = this.add.graphics();
       solidRoundRect(card, x, y, cw, ch, 18, mode === 'caught' ? 0xecfdf5 : 0xf1f5f9);
       if (mode === 'caught') card.lineStyle(2, 0xa7f3d0, 1).strokeRoundedRect(x, y, cw, ch, 18);
@@ -185,14 +193,14 @@ export default class UIScene extends Phaser.Scene {
       if (mode !== 'unseen') c.add(this.badge(x + cw - 14, y + 16, sp.type, 1, 0));
     });
 
-    const ly = gy + 2 * (ch + gap) + 6;
+    const ly = gy + rows * (ch + gap) + 6;
     c.add(text(this, px + 30, ly, `My Critters (${save.caught.length})`, 18, '#0f172a', '900'));
     const mine = [...save.caught].sort((a, b) => b.power - a.power).slice(0, 6);
     if (!mine.length) c.add(text(this, px + 30, ly + 34, 'No critters yet — go catch some!', 14, '#94a3b8', '700'));
     mine.forEach((m, i) => {
       const sp = SPECIES_BY_ID[m.id];
       if (!sp) return;
-      const x = px + 30 + (i % 3) * 256, y = ly + 32 + Math.floor(i / 3) * 50;
+      const x = px + (pw - mineCols * 256 + 12) / 2 + (i % mineCols) * 256, y = ly + 32 + Math.floor(i / mineCols) * 50;
       const row = solidRoundRect(this.add.graphics(), x, y, 244, 42, 14, 0xf8fafc);
       c.add([row, this.add.image(x + 24, y + 21, `portrait-${sp.id}`).setScale(0.24),
         text(this, x + 48, y + 21, sp.name, 14, '#0f172a', '900').setOrigin(0, 0.5),
