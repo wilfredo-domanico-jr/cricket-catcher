@@ -1,7 +1,7 @@
 import { CONFIG } from '../config.js';
 import { SPECIES } from '../species.js';
 import { save } from '../state.js';
-import { Sound } from '../sound.js';
+import { Sound, startMusic } from '../sound.js';
 import { text, button, solidRoundRect } from '../ui.js';
 
 export default class TitleScene extends Phaser.Scene {
@@ -56,6 +56,7 @@ export default class TitleScene extends Phaser.Scene {
     this.starting = true;
     Sound.init(this.sound.context);
     Sound.play('spin');
+    startMusic(this);
     this.cameras.main.fadeOut(250, 255, 255, 255);
     this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('World'));
   }

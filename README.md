@@ -6,7 +6,7 @@
 
 **Cricket Catcher** is a small open-world creature-catching game built with the **Phaser 3** engine. You explore a top-down map with a park, lakes and a little town. Along the way you find wild critters, flick capture gems at them, and fill your Field Journal.
 
-The project was built to explore **procedural art** (the game loads zero image or audio files), **runtime spritesheet generation**, **tile-based pathfinding** and **multi-scene game architecture** in Phaser.
+The project was built to explore **procedural art** (every sprite is drawn in code, so the game loads zero image files), **runtime spritesheet generation**, **tile-based pathfinding** and **multi-scene game architecture** in Phaser.
 
 ---
 
@@ -58,7 +58,8 @@ The project was built to explore **procedural art** (the game loads zero image o
 - **Flick-to-Throw Catching:** your flick speed sets how far the gem flies, and its direction sets where it lands. A catch rolls three "pulses", each with its own chance to break free, and critters can run away.
 - **Day/Night Cycle:** a 4-minute cycle with a soft light around the trainer at night.
 - **Progression:** you earn XP and level up, and each level-up gives a gem reward. Supply Stops recharge after use, and the Field Journal tracks seen and caught species plus your strongest catches.
-- **Synthesized Sound:** every sound effect is generated live with the Web Audio API, with no audio files.
+- **Synthesized Sound Effects:** every sound effect is generated live with the Web Audio API, with no audio files.
+- **Background Music:** a looping retro track that gets quieter during catch encounters. The 🔊 button mutes music and effects together, and the setting is saved.
 - **Auto-Save:** progress is saved to `localStorage` and survives page reloads.
 
 ---
@@ -84,7 +85,7 @@ The project was built to explore **procedural art** (the game loads zero image o
 - **Language:** Vanilla JavaScript (ES modules, no build step)
 - **Graphics:** Canvas 2D drawing, turned into Phaser `CanvasTexture` spritesheets and animations
 - **Effects:** Phaser tweens and particle emitters
-- **Audio:** Web Audio API (oscillators and gain envelopes)
+- **Audio:** Web Audio API for sound effects (oscillators and gain envelopes), Phaser sound manager for music
 - **Storage:** `localStorage`
 - **Font:** Nunito (Google Fonts)
 
@@ -96,6 +97,8 @@ The project was built to explore **procedural art** (the game loads zero image o
 cricket-catcher/
 ├── index.html            # Page shell, loads Phaser + src/main.js
 ├── phaser.js             # Phaser 3 engine
+├── assets/music/         # Background music (the only loaded asset)
+├── favicon.ico           # Browser tab icon (+ favicon-32.png, apple-touch-icon.png)
 ├── thumbnail.png         # Project thumbnail (Phaser Editor)
 ├── screenshots/          # README gallery images (not used by the game)
 └── src/
@@ -141,7 +144,7 @@ Then open <http://localhost:8000>.
 
 ## 📝 Notes
 
-All characters, art, names and sounds in this project are original and generated in code. The game is a personal, non-commercial learning project, inspired by location-based creature-catching games.
+All characters, art, names and sound effects in this project are original and generated in code (the background music is credited below). The game is a personal, non-commercial learning project, inspired by location-based creature-catching games.
 
 ---
 
@@ -152,3 +155,5 @@ Copyright © 2026 Wilfredo Domanico. All rights reserved.
 This source code is shared for demonstration and portfolio purposes only. See [LICENSE](LICENSE) for details.
 
 The bundled `phaser.js` is the [Phaser](https://phaser.io) game framework, © Phaser Studio Inc., and is distributed under its own MIT license.
+
+Background music: **"Retro Game" by The_Mountain**, used under the license of its source. It isn't covered by this project's license.

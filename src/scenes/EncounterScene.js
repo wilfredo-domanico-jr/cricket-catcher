@@ -1,6 +1,6 @@
 import { CONFIG, GEMS, GEM_BY_ID, RARITY, THROW_BONUS, TYPE_COLORS } from '../config.js';
 import { save, persist, journalEntry, darkness } from '../state.js';
-import { Sound } from '../sound.js';
+import { Sound, MUSIC_VOLUME, fadeMusic } from '../sound.js';
 import { drawCritter, sparkle } from '../art.js';
 import { text, pill, button, solidRoundRect } from '../ui.js';
 import { TAU, clamp, dist, lerp, easeOutBack, easeOutBounce, mulberry32, hexInt } from '../util.js';
@@ -82,6 +82,7 @@ export default class EncounterScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-ESC', () => this.run());
 
     this.cameras.main.fadeIn(350, 255, 255, 255);
+    fadeMusic(this, MUSIC_VOLUME * 0.45); // quieter while catching; WorldScene restores it
   }
 
   drawBackground() {

@@ -1,7 +1,7 @@
 import { CONFIG, GEMS, RARITY, TYPE_COLORS } from '../config.js';
 import { SPECIES, SPECIES_BY_ID } from '../species.js';
 import { save, persist, xpNeeded, isNight } from '../state.js';
-import { Sound } from '../sound.js';
+import { Sound, setMuted } from '../sound.js';
 import { text, pill, button, Toaster, solidRoundRect } from '../ui.js';
 import { hexInt } from '../util.js';
 
@@ -69,7 +69,8 @@ export default class UIScene extends Phaser.Scene {
   buildButtons() {
     button(this, W - 14 - 74, 38, 148, 44, '📖 Journal', () => { Sound.play('click'); this.openJournal(); });
     this.muteBtn = button(this, W - 14 - 74 - 104, 38, 44, 44, save.muted ? '🔇' : '🔊', () => {
-      Sound.muted = save.muted = !save.muted;
+      save.muted = !save.muted;
+      setMuted(this, save.muted);
       this.muteBtn.label.setText(save.muted ? '🔇' : '🔊');
       persist();
     }, { size: 18 });

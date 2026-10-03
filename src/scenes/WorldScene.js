@@ -3,7 +3,7 @@ import { SPECIES } from '../species.js';
 import { T, getWorld } from '../world.js';
 import { Player } from '../player.js';
 import { save, persist, addXP, shared, darkness, isNight } from '../state.js';
-import { Sound } from '../sound.js';
+import { Sound, MUSIC_VOLUME, fadeMusic } from '../sound.js';
 import { CRIT_ORIGIN_Y } from '../textures.js';
 import { clamp, dist, rand, randInt, weightedPick } from '../util.js';
 
@@ -215,6 +215,7 @@ export default class WorldScene extends Phaser.Scene {
   // Called when the Encounter scene wakes us with its result.
   onEncounterEnd(sys, data) {
     if (!data) return;
+    fadeMusic(this, MUSIC_VOLUME);
     const { outcome, critter, xp } = data;
     if (outcome === 'caught' || outcome === 'fled') this.removeCritter(critter);
     if (outcome === 'ran') this.game.events.emit('toast', 'You got away safely.');

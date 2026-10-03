@@ -36,3 +36,26 @@ export const Sound = {
     }
   },
 };
+
+// ---------------------------------------------------------------- Background music
+// Played through Phaser's sound manager; muted together with the sound effects.
+export const MUSIC_KEY = 'bgm';
+export const MUSIC_VOLUME = 0.35;
+
+export function startMusic(scene) {
+  const sm = scene.sound;
+  sm.mute = Sound.muted;
+  const music = sm.get(MUSIC_KEY) || sm.add(MUSIC_KEY, { loop: true, volume: MUSIC_VOLUME });
+  if (!music.isPlaying) music.play();
+}
+
+// Smoothly change the music volume (e.g. quieter during catch encounters).
+export function fadeMusic(scene, volume, duration = 600) {
+  const music = scene.sound.get(MUSIC_KEY);
+  if (music) scene.tweens.add({ targets: music, volume, duration });
+}
+
+export function setMuted(scene, muted) {
+  Sound.muted = muted;
+  scene.sound.mute = muted;
+}
